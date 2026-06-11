@@ -10,7 +10,7 @@ def pausa_humana(minimo=1.5, maximo=4.5):
     tempo = random.uniform(minimo, maximo)
     time.sleep(tempo)
 
-def scraping():
+def scraping(pagina):
     # banco
     conexao = sqlite3.connect("vagas.db")
     banco = conexao.cursor()
@@ -29,7 +29,6 @@ def scraping():
         abrir = p.chromium.launch(headless=False)
         site = abrir.new_page()
 
-        pagina = "https://www.linkedin.com/company/brq/"
         site.goto(pagina + "jobs/")
 
         # botao de fechar que aparece
@@ -109,6 +108,3 @@ def scraping():
         
     conexao.commit()
     conexao.close()
-
-# Executa o scraping
-scrap = scraping()

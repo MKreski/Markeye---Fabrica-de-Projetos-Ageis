@@ -269,5 +269,3 @@ def scraping():
 
     else:
         print("Não houve alterações.")
-
-scraping()
