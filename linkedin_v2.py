@@ -26,7 +26,14 @@ def scraping(pagina):
     """)
 
     with sync_playwright() as p:
-        abrir = p.chromium.launch(headless=False)
+        abrir = p.webkit.launch(headless=False)
+        context = abrir.new_context(
+            locale="pt-BR",
+            timezone_id="America/Sao_Paulo",
+            extra_http_headers={
+                "Accept-Language": "pt-BR,pt;q=0.9,en-US;q=0.8,en;q=0.7"
+            }
+        )
         site = abrir.new_page()
 
         site.goto(pagina + "jobs/")
@@ -55,7 +62,7 @@ def scraping(pagina):
         vagas = site.locator(seletor_vaga).all()
 
         for index, vaga in enumerate(vagas):
-            if index >= 25: # limita a 25 vagas pra n dar pau de memoria
+            if index >= 10: # limita a 10 vagas pra n dar pau de memoria
                 break
             
             titulo = vaga.inner_text()
@@ -103,7 +110,8 @@ def scraping(pagina):
             # fecha a aba pra n dar problema de excesso de memoria
             pausa_humana()
             siteVaga.close()
-
+            
+        context.close()
         abrir.close()
         
     conexao.commit()

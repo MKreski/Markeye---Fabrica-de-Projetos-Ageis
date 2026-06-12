@@ -3,16 +3,29 @@ from tkinter import ttk, messagebox
 import threading
 import time
 import linkedin_v2
+import sqlite3
 
 class GerenciadorEmpresas:
     def __init__(self, janela):
         self.janela = janela
         self.janela.title("Avivatec - Gerenciador de Empresas")
         self.janela.geometry("800x500")
-        self.empresas = []
+        conexao = sqlite3.connect("empresas.db")
+        banco = conexao.cursor()
+        banco.execute("""
+            CREATE TABLE IF NOT EXISTS empresas (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                nome TEXT,
+                url TEXT
+            )
+        """)
+        self.empresas = banco.execute("SELECT nome, url FROM empresas").fetchall()
+        conexao.close()
 
         self.criarMenu()
         self.criarTela()
+        for nome, url in self.empresas:
+            self.tabela.insert("", "end", values=(nome, url))
 
     def criarMenu(self):
         barra_menu = tk.Menu(self.janela)
@@ -58,7 +71,20 @@ class GerenciadorEmpresas:
             messagebox.showwarning("Aviso", "Preencha todos os campos.")
             return
 
-        self.empresas.append({"nome": nome, "url": url})
+        conexao = sqlite3.connect("empresas.db")
+        banco = conexao.cursor()
+        banco.execute("""
+            CREATE TABLE IF NOT EXISTS empresas (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                nome TEXT,
+                url TEXT
+            )
+        """)
+        
+        banco.execute("INSERT INTO empresas (nome, url) VALUES (?, ?)", (nome, url))
+        conexao.commit()
+        conexao.close()
+
         self.tabela.insert("", "end", values=(nome, url))
         
         self.entry_nome.delete(0, tk.END)
@@ -69,6 +95,15 @@ class GerenciadorEmpresas:
         if not selecionado:
             messagebox.showwarning("Aviso", "Selecione uma empresa.")
             return
+        
+        conexao = sqlite3.connect("empresas.db")
+        banco = conexao.cursor()
+        dados = self.tabela.item(selecionado)
+        empresa = dados["values"][0]
+        banco.execute("DELETE FROM empresas WHERE nome = ?", (empresa,))
+        conexao.commit()
+        conexao.close() 
+
         self.tabela.delete(selecionado)
 
     # --- LÓGICA DE INTEGRAÇÃO COM THREADING ---
